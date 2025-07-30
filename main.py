@@ -5,12 +5,17 @@ from flask_cors import CORS
 import yt_dlp
 
 # Initialize Flask app
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app)  # Enable CORS for browser access
 
 # Configure logging for production
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Health check endpoint
+@app.route('/health')
+def health_check():
+    return jsonify({'status': 'healthy'}), 200
 
 # Serve frontend at root
 @app.route('/')
