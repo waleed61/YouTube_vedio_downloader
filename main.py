@@ -7,15 +7,15 @@ app = Flask(__name__)
 def home():
     return '✅ YouTube Direct Link API is Running'
 
-@app.route('/get-url', methods=['POST'])
+@app.route('/get-url', methods=['GET'])
 def get_url():
-    data = request.get_json()
-    youtube_url = data.get("url")
+    youtube_url = request.args.get("url")
 
     if not youtube_url:
         return jsonify({"error": "Missing YouTube URL"}), 400
 
     try:
+        # yt_dlp will handle all YouTube URL formats automatically
         ydl_opts = {
             'quiet': True,
             'skip_download': True,
@@ -24,7 +24,7 @@ def get_url():
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(youtube_url, download=False)
-            video_url = info['url']
+            video_url = info.get('url')
             return jsonify({
                 "title": info.get("title"),
                 "url": video_url
