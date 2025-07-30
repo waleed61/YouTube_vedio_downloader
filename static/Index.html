@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Direct Link Extractor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 700px;
+            padding: 40px;
+            text-align: center;
+        }
+        .logo {
+            color: #ff0000;
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .input-group {
+            display: flex;
+            margin-bottom: 25px;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            flex: 1;
+            padding: 18px 25px;
+            border: none;
+            font-size: 18px;
+            outline: none;
+        }
+        input::placeholder {
+            color: #aaa;
+        }
+        button {
+            background: #ff0000;
+            color: white;
+            border: none;
+            padding: 0 40px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #e60000;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .result {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 5px solid #4CAF50;
+            animation: fadeIn 0.5s ease;
+        }
+        .error {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+            background: #fff0f0;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 5px solid #f44336;
+            animation: fadeIn 0.5s ease;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        .result-item {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .result-label {
+            font-weight: 600;
+            color: #444;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .result-value {
+            display: block;
+            word-break: break-all;
+            line-height: 1.6;
+        }
+        a {
+            color: #1a73e8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        a:hover {
+            color: #0d47a1;
+            text-decoration: underline;
+        }
+        .footer {
+            margin-top: 30px;
+            color: #777;
+            font-size: 14px;
+        }
+        .loader {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+            .input-group {
+                flex-direction: column;
+                border-radius: 12px;
+            }
+            input {
+                padding: 16px;
+            }
+            button {
+                padding: 16px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📺</div>
+        <h1>YouTube Direct Link Extractor</h1>
+        
+        <div class="input-group">
+            <input type="text" id="youtubeUrl" placeholder="Paste any YouTube URL (video, short, live, etc.)">
+            <button id="extractBtn">Get Direct Link</button>
+        </div>
+        
+        <div class="loader" id="loader"></div>
+        
+        <div id="errorBox" class="error"></div>
+        
+        <div id="resultBox" class="result">
+            <h2>Extraction Results</h2>
+            <div class="result-item">
+                <span class="result-label">Video Title:</span>
+                <span id="videoTitle" class="result-value">Loading...</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Direct Video URL:</span>
+                <a id="directUrl" target="_blank" class="result-value">Loading...</a>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Instructions:</span>
+                <span class="result-value">Right-click the link → "Save link as..." to download</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Works with all YouTube URLs • Direct links may expire after 6 hours</p>
+            <p>Deployed on Render.com</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlInput = document.getElementById('youtubeUrl');
+            const extractBtn = document.getElementById('extractBtn');
+            const errorBox = document.getElementById('errorBox');
+            const resultBox = document.getElementById('resultBox');
+            const videoTitle = document.getElementById('videoTitle');
+            const directUrl = document.getElementById('directUrl');
+            const loader = document.getElementById('loader');
+            
+            // Focus input on load
+            urlInput.focus();
+            
+            extractBtn.addEventListener('click', extractLink);
+            urlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') extractLink();
+            });
+            
+            async function extractLink() {
+                const url = urlInput.value.trim();
+                
+                // Reset UI
+                errorBox.style.display = 'none';
+                resultBox.style.display = 'none';
+                extractBtn.disabled = true;
+                loader.style.display = 'block';
+                extractBtn.textContent = 'Processing...';
+                
+                // Validate input
+                if (!url) {
+                    showError('Please enter a YouTube URL');
+                    resetUI();
+                    return;
+                }
+                
+                // YouTube URL validation
+                const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+                if (!youtubeRegex.test(url)) {
+                    showError('Please enter a valid YouTube URL');
+                    resetUI();
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/get-url', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Display results
+                        videoTitle.textContent = data.title;
+                        directUrl.href = data.direct_url;
+                        directUrl.textContent = data.direct_url;
+                        resultBox.style.display = 'block';
+                        
+                        // Auto-scroll to results
+                        resultBox.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        showError(data.error || `Error ${response.status}: Failed to process URL`);
+                    }
+                } catch (error) {
+                    showError(`Network error: ${error.message}`);
+                } finally {
+                    resetUI();
+                }
+            }
+            
+            function resetUI() {
+                extractBtn.disabled = false;
+                extractBtn.textContent = 'Get Direct Link';
+                loader.style.display = 'none';
+            }
+            
+            function showError(message) {
+                errorBox.textContent = message;
+                errorBox.style.display = 'block';
+                errorBox.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+</html>
