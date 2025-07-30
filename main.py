@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return '✅ YouTube Direct Link API is Running'
+    return 'YouTube Direct Link API is Running'
 
 @app.route('/get-url', methods=['GET'])
 def get_url():
