@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: youtube-link-api
+    runtime: python
+    buildCommand: ""
+    startCommand: "python main.py"
+    envVars:
+      - key: PORT
+        value: 8080
