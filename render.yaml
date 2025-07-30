@@ -1,9 +1,13 @@
 services:
   - type: web
-    name: youtube-link-api
-    runtime: python
-    buildCommand: ""
-    startCommand: "python main.py"
+    name: youtube-direct-link-extractor
+    region: ohio  # You can change to singapore, oregon, etc.
+    env: python
+    buildCommand: |
+        pip install -r requirements.txt
+    startCommand: gunicorn main:app
     envVars:
-      - key: PORT
-        value: 8080
+      - key: PYTHON_VERSION
+        value: 3.11.6  # Matches Render's latest supported version
+    plan: free
+    autoDeploy: true  # Automatic deploys on git push
