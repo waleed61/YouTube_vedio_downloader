@@ -1,218 +1,183 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal YouTube Downloader</title>
-    <style>
-        /* [Keep all previous CSS styles] */
-        .url-types {
-            background: #e3f2fd;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: left;
-        }
-        .url-types h3 {
-            margin-bottom: 10px;
-            color: #0d47a1;
-        }
-        .url-types ul {
-            padding-left: 20px;
-        }
-        .url-types li {
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
-        .url-example {
-            display: inline-block;
-            background: #bbdefb;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: monospace;
-            margin: 3px 0;
-        }
-        .original-url {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-            word-break: break-all;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>YouTube Direct Link — Simple Client</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;margin:0;background:#0f1720;color:#e6eef8;display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .card{width:720px;max-width:95%;background:#0b1220;padding:24px;border-radius:12px;box-shadow:0 6px 24px rgba(2,6,23,0.6)}
+    h1{margin:0 0 12px;font-size:20px}
+    label{display:block;font-size:13px;color:#9fb0d6;margin-top:8px}
+    input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid #203040;background:#071021;color:inherit}
+    button{margin-top:12px;padding:10px 14px;border-radius:8px;border:0;background:#1e90ff;color:#042033;font-weight:600;cursor:pointer}
+    pre{white-space:pre-wrap;background:#071827;padding:12px;border-radius:8px;overflow:auto}
+    .row{display:flex;gap:8px}
+    .col{flex:1}
+    img.thumb{max-width:160px;border-radius:6px}
+    .formats{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .fmt{background:#071b2a;padding:8px;border-radius:8px;border:1px solid #123246;min-width:140px}
+    .muted{color:#86a0c6;font-size:13px}
+    .error{color:#ff8b8b}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">📱</div>
-        <h1>Universal YouTube Downloader</h1>
-        <p class="description">Works with any YouTube link format - videos, shorts, mobile shares, and more!</p>
-        
-        <div class="input-group">
-            <input type="text" id="youtubeUrl" placeholder="Paste any YouTube link here...">
-            <button id="extractBtn">Get Direct Link</button>
-        </div>
-        
-        <div class="url-types">
-            <h3>Supported Link Formats:</h3>
-            <ul>
-                <li>Standard: <span class="url-example">https://www.youtube.com/watch?v=dQw4w9WgXcQ</span></li>
-                <li>Mobile Share: <span class="url-example">https://youtu.be/dQw4w9WgXcQ</span></li>
-                <li>YouTube Shorts: <span class="url-example">https://www.youtube.com/shorts/VIDEO_ID</span></li>
-                <li>Embedded: <span class="url-example">https://www.youtube.com/embed/dQw4w9WgXcQ</span></li>
-                <li>With Parameters: <span class="url-example">https://youtube.com/watch?v=dQw4w9WgXcQ&feature=share</span></li>
-            </ul>
-        </div>
-        
-        <div class="loader" id="loader"></div>
-        <div id="errorBox" class="error"></div>
-        
-        <div id="resultBox" class="result">
-            <h2>Download Ready</h2>
-            <div class="original-url" id="originalUrl"></div>
-            
-            <div class="result-content">
-                <img id="videoThumbnail" class="thumbnail" src="" alt="Video thumbnail">
-                <div class="result-details">
-                    <div class="result-item">
-                        <span class="result-label">Video Title:</span>
-                        <span id="videoTitle" class="result-value">Loading...</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Direct Video URL:</span>
-                        <a id="directUrl" target="_blank" class="result-value">Click to Download</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="instructions">
-                <p><strong>How to download:</strong></p>
-                <ol>
-                    <li>Right-click the "Click to Download" link</li>
-                    <li>Select "Save link as..."</li>
-                    <li>Choose where to save the video</li>
-                </ol>
-                <p><strong>Note:</strong> Links expire after 6 hours. Download immediately for best results.</p>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>Works with all devices and browsers • Deployed on Render.com</p>
-            <p>This service does not store any videos - direct download from YouTube</p>
-        </div>
-    </div>
+  <main class="card">
+    <h1>YouTube Direct Link — Simple Client</h1>
+    <p class="muted">Enter a YouTube URL and the API will return direct video/audio links and basic info.</p><label for="api">API Base URL</label>
+<input id="api" type="text" value="http://localhost:8080" />
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlInput = document.getElementById('youtubeUrl');
-            const extractBtn = document.getElementById('extractBtn');
-            const errorBox = document.getElementById('errorBox');
-            const resultBox = document.getElementById('resultBox');
-            const videoTitle = document.getElementById('videoTitle');
-            const videoThumbnail = document.getElementById('videoThumbnail');
-            const directUrl = document.getElementById('directUrl');
-            const originalUrl = document.getElementById('originalUrl');
-            const loader = document.getElementById('loader');
-            
-            // Focus input on load
-            urlInput.focus();
-            
-            // Handle paste events
-            urlInput.addEventListener('paste', (e) => {
-                setTimeout(() => {
-                    const text = urlInput.value.trim();
-                    if (isValidYoutubeUrl(text)) {
-                        extractLink();
-                    }
-                }, 10);
-            });
-            
-            extractBtn.addEventListener('click', extractLink);
-            urlInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') extractLink();
-            });
-            
-            function isValidYoutubeUrl(url) {
-                // Match all YouTube URL formats
-                const patterns = [
-                    /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=[a-zA-Z0-9_-]{11}/,
-                    /https?:\/\/(?:www\.)?youtube\.com\/shorts\/[a-zA-Z0-9_-]{11}/,
-                    /https?:\/\/youtu\.be\/[a-zA-Z0-9_-]{11}/,
-                    /https?:\/\/(?:www\.)?youtube\.com\/embed\/[a-zA-Z0-9_-]{11}/,
-                    /https?:\/\/(?:www\.)?youtube\.com\/v\/[a-zA-Z0-9_-]{11}/
-                ];
-                
-                return patterns.some(pattern => pattern.test(url));
-            }
-            
-            async function extractLink() {
-                const url = urlInput.value.trim();
-                
-                // Reset UI
-                errorBox.style.display = 'none';
-                resultBox.style.display = 'none';
-                extractBtn.disabled = true;
-                loader.style.display = 'block';
-                extractBtn.textContent = 'Processing...';
-                
-                // Validate input
-                if (!url) {
-                    showError('Please enter a YouTube URL');
-                    resetUI();
-                    return;
-                }
-                
-                if (!isValidYoutubeUrl(url)) {
-                    showError('Please enter a valid YouTube URL in any format');
-                    resetUI();
-                    return;
-                }
-                
-                try {
-                    const response = await fetch('/get-url', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ url })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        // Display results
-                        videoTitle.textContent = data.title || 'Untitled';
-                        directUrl.href = data.direct_url;
-                        directUrl.textContent = 'Download Video (Right-click Save)';
-                        
-                        if (data.thumbnail) {
-                            videoThumbnail.src = data.thumbnail;
-                            videoThumbnail.alt = data.title || 'Video thumbnail';
-                        }
-                        
-                        // Show original URL
-                        originalUrl.textContent = `Original URL: ${data.original_url}`;
-                        
-                        resultBox.style.display = 'block';
-                        resultBox.scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                        showError(data.error || `Error ${response.status}: Failed to process URL`);
-                    }
-                } catch (error) {
-                    showError(`Network error: ${error.message}`);
-                } finally {
-                    resetUI();
-                }
-            }
-            
-            function resetUI() {
-                extractBtn.disabled = false;
-                extractBtn.textContent = 'Get Direct Link';
-                loader.style.display = 'none';
-            }
-            
-            function showError(message) {
-                errorBox.textContent = message;
-                errorBox.style.display = 'block';
-                errorBox.scrollIntoView({ behavior: 'smooth' });
-            }
+<label for="url">YouTube URL</label>
+<input id="url" type="text" placeholder="https://www.youtube.com/watch?v=..." />
+
+<div class="row">
+  <div class="col"><button id="submit">Get Info</button></div>
+  <div class="col"><button id="clear">Clear</button></div>
+</div>
+
+<div id="status" class="muted" style="margin-top:10px"></div>
+
+<div id="result" style="margin-top:12px"></div>
+
+  </main>  <script>
+    const submit = document.getElementById('submit');
+    const clear = document.getElementById('clear');
+    const urlInput = document.getElementById('url');
+    const apiInput = document.getElementById('api');
+    const status = document.getElementById('status');
+    const result = document.getElementById('result');
+
+    function setStatus(text, isError=false){
+      status.textContent = text;
+      status.className = isError ? 'error' : 'muted';
+    }
+
+    function clearResult(){
+      result.innerHTML = '';
+      setStatus('');
+    }
+
+    clear.addEventListener('click', ()=>{
+      urlInput.value = '';
+      clearResult();
+    });
+
+    submit.addEventListener('click', async ()=>{
+      clearResult();
+      const apiBase = apiInput.value.trim().replace(/\/+$/,'');
+      const apiUrl = apiBase + '/info';
+      const youtubeUrl = urlInput.value.trim();
+      if(!youtubeUrl){ setStatus('Please enter a YouTube URL', true); return }
+
+      setStatus('Fetching info...');
+
+      try{
+        const resp = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({url: youtubeUrl})
         });
-    </script>
+
+        if(!resp.ok){
+          const err = await resp.json().catch(()=>({error:resp.statusText}));
+          setStatus('Error: ' + (err.error||resp.statusText), true);
+          return;
+        }
+
+        const data = await resp.json();
+        renderResult(data);
+        setStatus('Done');
+      }catch(err){
+        setStatus('Network error: '+err.message, true);
+      }
+    });
+
+    function renderResult(data){
+      const container = document.createElement('div');
+
+      const header = document.createElement('div');
+      header.style.display='flex';
+      header.style.gap='12px';
+
+      const thumb = document.createElement('img');
+      thumb.className='thumb';
+      thumb.src = data.thumbnail || '';
+      thumb.alt = 'thumbnail';
+
+      const meta = document.createElement('div');
+      meta.innerHTML = `<strong>${escapeHtml(data.title || 'Untitled')}</strong><div class="muted">By ${escapeHtml(data.uploader||'Unknown')} • ${formatDuration(data.duration||0)}</div><div class="muted">Tags: ${(data.tags||[]).join(', ')}</div>`;
+
+      header.appendChild(thumb);
+      header.appendChild(meta);
+
+      container.appendChild(header);
+
+      // Description
+      const desc = document.createElement('div');
+      desc.style.marginTop='10px';
+      desc.innerHTML = `<div class=\"muted\">Description</div><pre>${escapeHtml(data.description||'')}</pre>`;container.appendChild(desc);
+
+  // Video formats
+  const vf = document.createElement('div');
+  vf.innerHTML = `<div class=\"muted\">Video formats (top)</div>`;
+  const vfBox = document.createElement('div');
+  vfBox.className='formats';
+
+  const videos = (data.formats && data.formats.video) || [];
+  if(videos.length===0){
+    const p = document.createElement('div'); p.className='muted'; p.textContent='No progressive video formats found (may be DASH-only).'; vfBox.appendChild(p);
+  }
+
+  videos.forEach(v=>{
+    const el = document.createElement('div'); el.className='fmt';
+    el.innerHTML = `<div><strong>${v.quality}</strong> • ${v.fps}fps • ${v.tbr || 0}kbps</div><div class=\"muted\">${v.ext}</div><div style=\"margin-top:6px\"><a href=\"${v.url}\" target=\"_blank\" rel=\"noreferrer\">Open direct link</a></div>`;
+    vfBox.appendChild(el);
+  });
+
+  vf.appendChild(vfBox);
+  container.appendChild(vf);
+
+  // Audio
+  const af = document.createElement('div');
+  af.style.marginTop='10px';
+  af.innerHTML = `<div class=\"muted\">Best audio</div>`;
+  if(data.formats && data.formats.audio){
+    const a = data.formats.audio;
+    const el = document.createElement('div'); el.className='fmt';
+    el.innerHTML = `<div><strong>${a.format_id}</strong> • ${a.quality}</div><div class=\"muted\">${a.ext}</div><div style=\"margin-top:6px\"><a href=\"${a.url}\" target=\"_blank\" rel=\"noreferrer\">Open direct audio link</a></div>`;
+    af.appendChild(el);
+  }else{
+    const p = document.createElement('div'); p.className='muted'; p.textContent='No audio-only formats found.'; af.appendChild(p);
+  }
+
+  container.appendChild(af);
+
+  // Raw JSON toggle
+  const rawBtn = document.createElement('button'); rawBtn.textContent='Show raw JSON'; rawBtn.style.marginTop='12px';
+  const rawPre = document.createElement('pre'); rawPre.style.display='none'; rawPre.textContent = JSON.stringify(data, null, 2);
+  rawBtn.addEventListener('click', ()=>{
+    if(rawPre.style.display==='none'){ rawPre.style.display='block'; rawBtn.textContent='Hide raw JSON'}
+    else { rawPre.style.display='none'; rawBtn.textContent='Show raw JSON'}
+  });
+
+  container.appendChild(rawBtn);
+  container.appendChild(rawPre);
+
+  result.appendChild(container);
+}
+
+function escapeHtml(s){
+  if(!s) return '';
+  return s.replace(/[&<>\"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" })[c]);
+}
+
+function formatDuration(sec){
+  sec = Number(sec)||0;
+  const h = Math.floor(sec/3600); sec%=3600; const m = Math.floor(sec/60); const s = Math.floor(sec%60);
+  return (h? h+':':'') + String(m).padStart(h?2:1,'0') + ':' + String(s).padStart(2,'0');
+}
+
+  </script>
 </body>
 </html>
